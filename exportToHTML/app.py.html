@@ -1,0 +1,75 @@
+<html>
+<head>
+<title>app.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6a8759;}
+.s3 { color: #6897bb;}
+.s4 { color: #808080;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+app.py</font>
+</center></td></tr></table>
+<pre><span class="s0">from </span><span class="s1">flask </span><span class="s0">import </span><span class="s1">Flask</span><span class="s0">, </span><span class="s1">render_template</span><span class="s0">, </span><span class="s1">request</span><span class="s0">, </span><span class="s1">redirect</span>
+<span class="s0">from </span><span class="s1">flask_sqlalchemy </span><span class="s0">import </span><span class="s1">SQLAlchemy</span>
+
+<span class="s1">app = Flask(__name__)</span>
+<span class="s1">app.config[</span><span class="s2">'SQLALCHEMY_DATABASE_URI'</span><span class="s1">] = </span><span class="s2">'sqlite:///clients.db'</span>
+<span class="s1">app.config[</span><span class="s2">'SQLALCHEMY_TRACK_MODIFICATIONS'</span><span class="s1">] = </span><span class="s0">False</span>
+<span class="s1">db = SQLAlchemy(app)</span>
+
+
+<span class="s0">class </span><span class="s1">Table(db.Model):</span>
+    <span class="s1">id = db.Column(db.Integer()</span><span class="s0">, </span><span class="s1">primary_key=</span><span class="s0">True</span><span class="s1">)</span>
+    <span class="s1">name = db.Column(db.String(</span><span class="s3">20</span><span class="s1">)</span><span class="s0">, </span><span class="s1">nullable=</span><span class="s0">False</span><span class="s1">)</span>
+    <span class="s1">age = db.Column(db.Integer()</span><span class="s0">, </span><span class="s1">nullable=</span><span class="s0">False</span><span class="s1">)</span>
+
+    <span class="s0">def </span><span class="s1">__repr__(self):</span>
+        <span class="s4">#return &quot;&lt;{}:{}:{}&gt;&quot;.format(self.name, self.age)</span>
+        <span class="s0">return </span><span class="s2">'&lt;Table %r&gt;' </span><span class="s1">% self.id</span>
+
+<span class="s1">@app.route(</span><span class="s2">'/'</span><span class="s1">)</span>
+<span class="s1">@app.route(</span><span class="s2">'/home'</span><span class="s1">)</span>
+<span class="s0">def </span><span class="s1">home():</span>
+    <span class="s0">return </span><span class="s1">render_template(</span><span class="s2">&quot;home.html&quot;</span><span class="s1">)</span>
+
+
+<span class="s1">@app.route(</span><span class="s2">'/add'</span><span class="s0">, </span><span class="s1">methods=[</span><span class="s2">'POST'</span><span class="s0">, </span><span class="s2">'GET'</span><span class="s1">])</span>
+<span class="s0">def </span><span class="s1">add():</span>
+    <span class="s0">if </span><span class="s1">request.method == </span><span class="s2">&quot;POST&quot;</span><span class="s1">:</span>
+        <span class="s1">name = request.form[</span><span class="s2">'name'</span><span class="s1">]</span>
+        <span class="s1">age = request.form[</span><span class="s2">'age'</span><span class="s1">]</span>
+
+        <span class="s1">table = Table(name=name</span><span class="s0">, </span><span class="s1">age=age)</span>
+
+        <span class="s0">try</span><span class="s1">:</span>
+            <span class="s1">db.session.add(table)</span>
+            <span class="s1">db.session.commit()</span>
+            <span class="s0">return </span><span class="s1">redirect(</span><span class="s2">'/'</span><span class="s1">)</span>
+        <span class="s0">except </span><span class="s1">Exception </span><span class="s0">as </span><span class="s1">e:</span>
+            <span class="s0">return </span><span class="s2">&quot;При добавлении произошла ошибка&quot;</span>
+
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s0">return </span><span class="s1">render_template(</span><span class="s2">&quot;add.html&quot;</span><span class="s1">)</span>
+
+<span class="s1">@app.route(</span><span class="s2">'/users'</span><span class="s0">, </span><span class="s1">methods=[</span><span class="s2">'GET'</span><span class="s0">, </span><span class="s2">'POST'</span><span class="s1">])</span>
+<span class="s0">def </span><span class="s1">users():</span>
+    <span class="s1">all_users = Table.query.all()</span>
+    <span class="s0">return </span><span class="s1">render_template(</span><span class="s2">&quot;users.html&quot;</span><span class="s0">, </span><span class="s1">all_users=all_users)</span>
+
+<span class="s1">@app.route(</span><span class="s2">'/user_&lt;int:id&gt;'</span><span class="s1">)</span>
+<span class="s0">def </span><span class="s1">user(id):</span>
+    <span class="s1">user_x = Table.query.get(id)</span>
+    <span class="s0">return </span><span class="s1">render_template(</span><span class="s2">&quot;user_x.html&quot;</span><span class="s0">, </span><span class="s1">user_x=user_x)</span>
+
+<span class="s0">if </span><span class="s1">__name__ == </span><span class="s2">&quot;__main__&quot;</span><span class="s1">:</span>
+    <span class="s1">app.run(debug=</span><span class="s0">True</span><span class="s1">)</span>
+</pre>
+</body>
+</html>
